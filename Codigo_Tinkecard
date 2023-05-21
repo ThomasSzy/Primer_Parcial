@@ -1,0 +1,252 @@
+//Thomas Szymuda 1D
+//Primer Parcial
+
+//Pin
+#define LED_VERDE 2
+#define LED_ROJO 3
+//botones
+#define BOTON_SUBIR 11
+#define BOTON_PARAR 13
+#define BOTON_BAJAR 12
+
+int pausar_elevador;
+int sube;
+int baja;
+int estado_de_sistema;
+int numero_piso;
+
+//7Segmentos
+#define CON_A 8
+#define CON_B 7
+#define CON_C 4
+#define CON_D 5
+#define CON_E 6
+#define CON_F 9
+#define CON_G 10
+void setup()
+{
+  //boton
+  pinMode(BOTON_SUBIR, INPUT); // SUBIR
+  pinMode(BOTON_BAJAR, INPUT); // BAJAR  
+  pinMode(BOTON_PARAR, INPUT_PULLUP); //PARAR
+  
+  //leds
+  pinMode(LED_VERDE, OUTPUT);
+  pinMode(LED_ROJO, OUTPUT); 
+  
+  //7 Segmentos
+  pinMode(CON_A, OUTPUT);   
+  pinMode(CON_B, OUTPUT);  
+  pinMode(CON_C, OUTPUT);  
+  pinMode(CON_D, OUTPUT);  
+  pinMode(CON_E, OUTPUT);  
+  pinMode(CON_F, OUTPUT);  
+  pinMode(CON_G, OUTPUT); 
+  
+  //Acensor. Pausa,Subida,Bajada
+  pausar_elevador = 0;
+  
+  sube = 1;
+  
+  baja = -1;
+  
+  estado_de_sistema = pausar_elevador;
+  //Piso Actual
+  numero_piso = 0;
+  
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  //Botones
+  int boton_sube;
+  boton_sube = digitalRead(BOTON_SUBIR);
+  int boton_bajar;
+  boton_bajar = digitalRead(BOTON_BAJAR); 
+  
+  int boton_pausar;
+  boton_pausar = digitalRead(BOTON_PARAR);
+  
+  //piso
+  Serial.print("Piso: ");    
+  Serial.println(numero_piso);
+  //Encendido
+  encender_piso(numero_piso);
+  //ESTADO ACENSOR
+  estado_acensor(boton_pausar, boton_sube, boton_bajar, 0, 9);
+  //Delay y estado de leds
+  leds_estado_acensor();
+}
+void leds_estado_acensor()
+{
+ 	if(estado_de_sistema == pausar_elevador) 
+{
+  	leds_funcionamiento(LED_ROJO, LED_VERDE); 
+  	delay(1000);
+}
+  
+ 	else 
+ 	{
+ 	leds_funcionamiento(LED_VERDE, LED_ROJO); 
+   	subida_bajada_acensor(0,9);
+   	delay(3000);
+	}
+}
+  
+
+void estado_acensor(int pausar, int subir, int bajar, int primer_piso, int ultimo_piso)
+{
+  
+  if (pausar == LOW)
+  {
+    estado_de_sistema = pausar_elevador;
+    Serial.println("!ALERTA! Acensor Pausado");
+  }
+  
+  else if (subir == HIGH && estado_de_sistema != sube && numero_piso < ultimo_piso)
+  {
+    estado_de_sistema = sube;
+    Serial.println("Subiendo");
+  }
+  
+  else if (bajar == LOW && estado_de_sistema != baja && numero_piso > primer_piso)
+  {
+    estado_de_sistema = baja;
+    Serial.println("Bajando"); 
+  }
+  
+}
+
+
+//Subida de acensor
+void subida_acensor(int ultimo_piso)
+{
+  if(numero_piso < ultimo_piso)
+  {
+    numero_piso += 1;
+    estado_de_sistema = sube;
+    
+  }
+  
+  else if(estado_de_sistema == baja)
+  {
+    estado_de_sistema = pausar_elevador;
+  }
+  else
+  {
+    estado_de_sistema = pausar_elevador;
+    Serial.println("!ALERTA! Acensor en el Ultimo Piso");
+  }
+}
+
+//Bajada de acensor
+void bajada_acensor(int primer_piso)
+{
+  if(numero_piso > primer_piso)
+  {
+    numero_piso -= 1;
+  }
+  
+  else
+  {
+    estado_de_sistema = pausar_elevador;
+    Serial.println("!ALERTA! Acensor Planta Baja");
+  }
+}
+
+void subida_bajada_acensor(int primer_piso, int ultimo_piso)
+{
+  	if(estado_de_sistema == sube)
+  {
+  	subida_acensor(ultimo_piso);
+  }
+  
+  	else if(estado_de_sistema == baja)
+  {
+  	bajada_acensor(primer_piso);
+  }
+}
+
+
+
+
+//Mostrador de pisos
+void encender_piso(int numero)
+{
+  switch(numero)
+  {
+    case 0: 
+      digitalWrite(CON_A, HIGH);   
+      digitalWrite(CON_B, HIGH);  
+      digitalWrite(CON_C, HIGH);  
+      digitalWrite(CON_D, HIGH);
+      digitalWrite(CON_E, HIGH);  
+      digitalWrite(CON_F, HIGH);
+      digitalWrite(CON_G, LOW);
+      break;
+    case 1: 
+      digitalWrite(CON_A, LOW);  
+      digitalWrite(CON_D, LOW);  
+      digitalWrite(CON_E, LOW);
+      digitalWrite(CON_F, LOW);          
+      digitalWrite(CON_G, LOW);
+      break;
+    case 2: 
+      digitalWrite(CON_A, HIGH);
+      digitalWrite(CON_D, HIGH);
+      digitalWrite(CON_E, HIGH);  
+      digitalWrite(CON_G, HIGH);
+      digitalWrite(CON_C, LOW);
+      digitalWrite(CON_F, LOW);
+      break;
+    case 3:
+      digitalWrite(CON_C, HIGH); 
+      digitalWrite(CON_E, LOW);  
+      digitalWrite(CON_F, LOW); 
+      break;
+    case 4:	       
+      digitalWrite(CON_F, HIGH);
+      digitalWrite(CON_A, LOW);  
+      digitalWrite(CON_D, LOW);  
+      digitalWrite(CON_E, LOW); 
+      break;
+    case 5:
+        digitalWrite(CON_A, HIGH);
+     	digitalWrite(CON_B, LOW);    
+        digitalWrite(CON_D, HIGH); 
+     	break;
+     case 6:
+     	digitalWrite(CON_B, LOW);
+        digitalWrite(CON_E, HIGH);  
+        digitalWrite(CON_F, HIGH);        
+    	digitalWrite(CON_G, HIGH);
+     	break;
+     case 7:  
+        digitalWrite(CON_B, HIGH); 
+     	digitalWrite(CON_D, LOW);
+        digitalWrite(CON_E, LOW);  
+        digitalWrite(CON_F, LOW);        
+    	digitalWrite(CON_G, LOW);
+        break;
+     case 8: 
+       digitalWrite(CON_D, HIGH);  
+       digitalWrite(CON_E, HIGH);
+       digitalWrite(CON_F, HIGH);          
+       digitalWrite(CON_G, HIGH);
+       break;
+     case 9: 
+       digitalWrite(CON_D, LOW);  
+       digitalWrite(CON_E, LOW);
+       break;
+  	}
+}  
+
+//Leds Encendido Apagado
+void leds_funcionamiento(int LED_PRENDER, int LED_APAGAR)
+{
+  digitalWrite(LED_PRENDER, HIGH);
+  digitalWrite(LED_APAGAR, LOW);
+}
+
+
