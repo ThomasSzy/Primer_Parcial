@@ -1,6 +1,8 @@
 //Thomas Szymuda 1D
-//Primer Parcial
-
+//Primer Parcial Parte Final
+#include <Servo.h> 
+Servo myServo;
+# define flexPin A2
 //Pin
 #define LED_VERDE 2
 #define LED_ROJO 3
@@ -15,6 +17,12 @@ int baja;
 int estado_de_sistema;
 int numero_piso;
 
+//fotoresistencia
+int pinLDR = 0;
+int valorLDR = 0;
+//leds fotoresistencia
+#define LED_EMERGENCIA A1
+
 //7Segmentos
 #define CON_A 8
 #define CON_B 7
@@ -25,14 +33,15 @@ int numero_piso;
 #define CON_G 10
 void setup()
 {
+  myServo.attach(A3);
   //boton
   pinMode(BOTON_SUBIR, INPUT); // SUBIR
   pinMode(BOTON_BAJAR, INPUT); // BAJAR  
   pinMode(BOTON_PARAR, INPUT_PULLUP); //PARAR
-  
   //leds
   pinMode(LED_VERDE, OUTPUT);
   pinMode(LED_ROJO, OUTPUT); 
+  pinMode(LED_EMERGENCIA, OUTPUT);
   
   //7 Segmentos
   pinMode(CON_A, OUTPUT);   
@@ -59,9 +68,14 @@ void setup()
 
 void loop()
 {
+  
+  cabina_aire();
+  emergencia();
+  
   //Botones
   int boton_sube;
   boton_sube = digitalRead(BOTON_SUBIR);
+  
   int boton_bajar;
   boton_bajar = digitalRead(BOTON_BAJAR); 
   
@@ -154,7 +168,7 @@ void bajada_acensor(int primer_piso)
     Serial.println("!ALERTA! Acensor Planta Baja");
   }
 }
-
+//Estado de sistema subida y bajada
 void subida_bajada_acensor(int primer_piso, int ultimo_piso)
 {
   	if(estado_de_sistema == sube)
@@ -169,77 +183,102 @@ void subida_bajada_acensor(int primer_piso, int ultimo_piso)
 }
 
 
-
-
 //Mostrador de pisos
 void encender_piso(int numero)
 {
   switch(numero)
-  {
-    case 0: 
-      digitalWrite(CON_A, HIGH);   
-      digitalWrite(CON_B, HIGH);  
-      digitalWrite(CON_C, HIGH);  
-      digitalWrite(CON_D, HIGH);
-      digitalWrite(CON_E, HIGH);  
-      digitalWrite(CON_F, HIGH);
-      digitalWrite(CON_G, LOW);
-      break;
-    case 1: 
-      digitalWrite(CON_A, LOW);  
-      digitalWrite(CON_D, LOW);  
-      digitalWrite(CON_E, LOW);
-      digitalWrite(CON_F, LOW);          
-      digitalWrite(CON_G, LOW);
-      break;
-    case 2: 
-      digitalWrite(CON_A, HIGH);
-      digitalWrite(CON_D, HIGH);
-      digitalWrite(CON_E, HIGH);  
-      digitalWrite(CON_G, HIGH);
-      digitalWrite(CON_C, LOW);
-      digitalWrite(CON_F, LOW);
-      break;
-    case 3:
-      digitalWrite(CON_C, HIGH); 
-      digitalWrite(CON_E, LOW);  
-      digitalWrite(CON_F, LOW); 
-      break;
-    case 4:	       
-      digitalWrite(CON_F, HIGH);
-      digitalWrite(CON_A, LOW);  
-      digitalWrite(CON_D, LOW);  
-      digitalWrite(CON_E, LOW); 
-      break;
-    case 5:
+   {
+     case 0: 
+        digitalWrite(CON_A, HIGH);   
+        digitalWrite(CON_B, HIGH);  
+        digitalWrite(CON_C, HIGH);  
+        digitalWrite(CON_D, HIGH);
+        digitalWrite(CON_E, HIGH);  
+        digitalWrite(CON_F, HIGH);
+        digitalWrite(CON_G, LOW);
+     	break;
+     case 1:
+     	digitalWrite(CON_A, LOW);   
+     	digitalWrite(CON_B, HIGH);  
+        digitalWrite(CON_C, HIGH);
+        digitalWrite(CON_D, LOW);
+        digitalWrite(CON_E, LOW);  
+        digitalWrite(CON_F, LOW);        
+        digitalWrite(CON_G, LOW);
+        break;
+      case 2: 
+     	digitalWrite(CON_A, HIGH);   
+        digitalWrite(CON_B, HIGH);        
+     	digitalWrite(CON_C, LOW);  
+        digitalWrite(CON_D, HIGH);
+        digitalWrite(CON_E, HIGH);  
+     	digitalWrite(CON_F, LOW);  
+    	digitalWrite(CON_G, HIGH);
+        break;
+      case 3:
+     	digitalWrite(CON_A, HIGH);   
+        digitalWrite(CON_B, HIGH);  
+        digitalWrite(CON_C, HIGH);  
+        digitalWrite(CON_D, HIGH);
+     	digitalWrite(CON_E, LOW);  
+     	digitalWrite(CON_F, LOW);  
+    	digitalWrite(CON_G, HIGH);
+     	break;
+     case 4:
+		digitalWrite(CON_A, LOW);		
+		digitalWrite(CON_B, HIGH);
+     	digitalWrite(CON_C, HIGH);  
+		digitalWrite(CON_D, LOW);
+     	digitalWrite(CON_E, LOW);	
+        digitalWrite(CON_F, HIGH);        
+    	digitalWrite(CON_G, HIGH);
+        break;
+     case 5:
         digitalWrite(CON_A, HIGH);
-     	digitalWrite(CON_B, LOW);    
-        digitalWrite(CON_D, HIGH); 
+     	digitalWrite(CON_B, LOW);   
+        digitalWrite(CON_C, HIGH);  
+        digitalWrite(CON_D, HIGH);
+     	digitalWrite(CON_E, LOW);
+        digitalWrite(CON_F, HIGH);        
+    	digitalWrite(CON_G, HIGH);
      	break;
      case 6:
+        digitalWrite(CON_A, HIGH);
      	digitalWrite(CON_B, LOW);
+        digitalWrite(CON_C, HIGH);  
+        digitalWrite(CON_D, HIGH);
         digitalWrite(CON_E, HIGH);  
         digitalWrite(CON_F, HIGH);        
     	digitalWrite(CON_G, HIGH);
      	break;
-     case 7:  
-        digitalWrite(CON_B, HIGH); 
+     case 7:
+        digitalWrite(CON_A, HIGH);   
+        digitalWrite(CON_B, HIGH);  
+        digitalWrite(CON_C, HIGH); 
      	digitalWrite(CON_D, LOW);
         digitalWrite(CON_E, LOW);  
         digitalWrite(CON_F, LOW);        
     	digitalWrite(CON_G, LOW);
         break;
-     case 8: 
+     case 8:
+       digitalWrite(CON_A, HIGH);   
+       digitalWrite(CON_B, HIGH);          
+       digitalWrite(CON_C, HIGH);  
        digitalWrite(CON_D, HIGH);  
        digitalWrite(CON_E, HIGH);
        digitalWrite(CON_F, HIGH);          
        digitalWrite(CON_G, HIGH);
        break;
-     case 9: 
+     case 9:
+       digitalWrite(CON_A, HIGH);   
+       digitalWrite(CON_B, HIGH);          
+       digitalWrite(CON_C, HIGH);  
        digitalWrite(CON_D, LOW);  
        digitalWrite(CON_E, LOW);
+       digitalWrite(CON_F, HIGH);          
+       digitalWrite(CON_G, HIGH);
        break;
-  	}
+    }
 }  
 
 //Leds Encendido Apagado
@@ -248,5 +287,38 @@ void leds_funcionamiento(int LED_PRENDER, int LED_APAGAR)
   digitalWrite(LED_PRENDER, HIGH);
   digitalWrite(LED_APAGAR, LOW);
 }
+void emergencia()
+{
+  
+  	digitalWrite(LED_EMERGENCIA,LOW);
 
+	valorLDR= analogRead(pinLDR);
+	
+	Serial.println(valorLDR);
 
+	if(valorLDR > 800)
+	{
+	digitalWrite(LED_EMERGENCIA, HIGH);
+	}
+}
+
+//Abre la cabina la cabina de aire o la cierra
+void cabina_aire()
+{
+  int flexValue;
+  int servoPosition;
+  
+  flexValue = analogRead(flexPin);
+  
+  servoPosition = map(flexValue, 770, 950, 0, 180);
+  servoPosition = constrain(servoPosition, 0, 180);
+
+  myServo.write(servoPosition);
+  
+  Serial.print("sensor =");
+  Serial.println(flexValue);
+  Serial.print("servo =");
+  Serial.println(servoPosition);
+  
+  delay(20);
+}
