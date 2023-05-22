@@ -296,7 +296,7 @@ void emergencia()
 	
 	Serial.println(valorLDR);
 
-	if(valorLDR > 800)
+	if(valorLDR < 300)
 	{
 	digitalWrite(LED_EMERGENCIA, HIGH);
 	}
